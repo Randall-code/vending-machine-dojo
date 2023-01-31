@@ -44,37 +44,34 @@ describe VendingMachine do
     end
   end
 
-  describe "#total" do
-
-    context "when there are coins" do
-      before do
-        subject.add_coin("nickel")
-        subject.add_coin("dime")
-      end
-
-      it "calculates the total" do
-        expect(subject.total).to eq(15)
-      end
-    end
-
-    context "when there are no coins" do
-      it "returns zero" do
-        expect(subject.total).to eq(0)
-      end
-    end
-  end
-
   describe "#display" do
     let(:total) {50}
 
     before do
-      allow(subject).to receive(:total) {total}
+      allow(subject).to receive(:total_in_cents) {total}
     end
     
     context "when there is a total" do
-      it "displays the total in $x.xx format" do
-        expect(subject.display).to eq "$0.50"
+      context "when the total ends in a 0" do
+        it "displays the total in $x.xx " do
+          expect(subject.display).to eq "$0.50"
+        end
       end
+      
+      context "when the total ends in a number" do
+        let(:total) {55}
+        it "displays the total in $x.xx " do
+          expect(subject.display).to eq "$0.55"
+        end
+      end
+
+      context "when the total is more than a dolla" do
+        let(:total) {123}
+
+        it "displays the total $1.xx" do
+          expect(subject.display).to eq "$1.23"
+        end
+    end
     end
 
     context "when there isn't a total" do
@@ -82,6 +79,40 @@ describe VendingMachine do
       
       it "displays a message to insert coins" do
         expect(subject.display).to eq "INSERT COINS"
+      end
+    end
+  end
+  describe "#select_item" do
+    before do
+      allow(subject).to receive(:total_in_cents) {total}
+    end
+    let (:item) {"cola"}
+
+    context "when the total is more than the value of the item" do
+      let(:total) {100}
+
+      it "sets chosen item to the value if it's valid" do
+        subject.select_item(item)
+        expect(subject.chosen_item).to eq "cola"
+      end
+
+      it "doesn't set chosen item to the value if it's invalid" do
+        subject.select_item("bob")
+        expect(subject.chosen_item).to eq ""
+      end
+    end
+    
+    context "when there are insufficient coins for selected item" do
+      let(:total) {40}
+
+      it "deosn't set chosen item" do
+        subject.select_item(item)
+        expect(subject.chosen_item).to eq ""
+      end
+
+      it "returns the price of the chosen item" do
+        
+        expect(subject.select_item(item)).to eq "PRICE $1.00"
       end
     end
   end
