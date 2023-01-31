@@ -64,16 +64,24 @@ describe VendingMachine do
     end
   end
 
-  describe "#display" do
-    let(:total) {50}
+  describe "#display"   do
+    let(:total) {100}
 
     before do
       allow(subject).to receive(:total) {total}
     end
     
-    context "when there is a total" do
+    context "when there is a total ending in two zeros" do
       it "displays the total in $x.xx format" do
-        expect(subject.display).to eq "$0.50"
+        expect(subject.display).to eq "$1.00"
+      end
+    end
+
+    context "when there is a total ending in two non-zeros" do
+      let(:total) {125}
+
+      it "displays the total in $x.xx format" do
+        expect(subject.display).to eq "$1.25"
       end
     end
 
@@ -82,6 +90,42 @@ describe VendingMachine do
       
       it "displays a message to insert coins" do
         expect(subject.display).to eq "INSERT COINS"
+      end
+    end
+  end
+
+  describe "#press_button" do
+
+    before do
+      allow(subject).to receive(:total) {total}
+    end
+
+    context "when there is enough money" do
+      let(:total) {100}
+      let(:product) {"cola"}
+
+      it "accepts the request" do
+        expect(subject.press_button(product)).to eq product
+       end
+
+      # TO DO
+      # it "sets the display to product price" do
+      #   subject.press_button(product)
+      #   expect(subject.display).to eq("THANK YOU")
+      # end
+    end  
+
+    context "when there is not enough money" do
+       let(:total) {0}
+       let(:product) {"cola"}
+
+       it "rejects the request" do
+        expect(subject.press_button(product)).to eq nil
+       end
+
+       it "sets the display to product price" do
+        subject.press_button(product)
+        expect(subject.display).to eq("PRICE $1.00")
       end
     end
   end
